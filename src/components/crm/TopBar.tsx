@@ -11,6 +11,7 @@ const TITLES: Record<CRMView, string> = {
   aireview: "AI Deal Review",
   cases: "Cases",
   reports: "Reports & Analytics",
+  contracts: "Contract Analyzer",
 };
 
 interface TopBarProps {

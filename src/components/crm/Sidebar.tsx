@@ -1,7 +1,7 @@
 "use client";
 import { Icon } from "@iconify/react";
 
-export type CRMView = "dashboard" | "accounts" | "contacts" | "pipeline" | "aireview" | "cases" | "reports";
+export type CRMView = "dashboard" | "accounts" | "contacts" | "pipeline" | "aireview" | "cases" | "reports" | "contracts";
 
 interface SidebarProps {
   active: CRMView;
@@ -18,6 +18,7 @@ const NAV = [
   { id: "aireview", label: "AI Deal Review", icon: "lucide:brain-circuit", badge: "AI" },
   { id: "cases", label: "Cases", icon: "lucide:ticket" },
   { id: "reports", label: "Reports", icon: "lucide:bar-chart-2" },
+  { id: "contracts", label: "Contract Analyzer", icon: "lucide:file-search", badge: "AI" },
 ] as const;
 
 export default function Sidebar({ active, onNav, collapsed, onToggle }: SidebarProps) {

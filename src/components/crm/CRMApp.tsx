@@ -9,6 +9,7 @@ import AIReviewView from "./AIReviewView";
 import CasesView from "./CasesView";
 import ContactsView from "./ContactsView";
 import ReportsView from "./ReportsView";
+import ContractAnalyzerView from "./ContractAnalyzerView";
 
 export default function CRMApp() {
   const [view, setView] = useState<CRMView>("dashboard");
@@ -23,6 +24,7 @@ export default function CRMApp() {
       case "aireview": return <AIReviewView />;
       case "cases": return <CasesView />;
       case "reports": return <ReportsView />;
+      case "contracts": return <ContractAnalyzerView />;
       default: return <DashboardView />;
     }
   };
