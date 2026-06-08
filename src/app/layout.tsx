@@ -7,8 +7,8 @@ const ASSISTANT_SCRIPT_SRC =
   "https://ai-companion-edit-mode-assistant-nextjs.scripts.codedesign.ai/";
 
 export const metadata: Metadata = {
-  title: "Brightway Health",
-  description: "Generated website export.",
+  title: "AI Deal Review CRM",
+  description: "Salesforce-like CRM browser application with AI Deal Review Agent.",
 };
 
 export default function RootLayout({
@@ -17,7 +17,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" style={{ colorScheme: "light" }}>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
