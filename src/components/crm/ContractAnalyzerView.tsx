@@ -4,6 +4,7 @@ import { Icon } from "@iconify/react";
 import { useEffect, useRef, useState } from "react";
 
 import { extractContract } from "@/lib/contracts/extract-contract";
+import type { LoadedContract } from "@/lib/contracts/loaded-contracts";
 import { CONTRACT_QUESTIONS, GAP_ANALYSIS_BASELINE } from "@/lib/contracts/questions";
 import type {
   ContractAnalysis,
@@ -224,8 +225,10 @@ function InfoRow({ label, value }: { label: string; value: string | null }) {
   );
 }
 
-export default function ContractAnalyzerView() {
+export default function ContractAnalyzerView({ section }: { section: "loaded" | "upload" }) {
   const [contract, setContract] = useState<ExtractedContract | null>(null);
+  const [loadedContracts, setLoadedContracts] = useState<LoadedContract[]>([]);
+  const [loadingContracts, setLoadingContracts] = useState(false);
   const [initial, setInitial] = useState<ContractAnalysis | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -240,6 +243,23 @@ export default function ContractAnalyzerView() {
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, busy]);
+
+  useEffect(() => {
+    reset();
+  }, [section]);
+
+  useEffect(() => {
+    if (section !== "loaded") return;
+    setLoadingContracts(true);
+    fetch("/api/contracts")
+      .then(async response => {
+        const body = await response.json();
+        if (!response.ok) throw new Error(body.error || "Unable to load contracts.");
+        setLoadedContracts(body.contracts);
+      })
+      .catch(caught => setError(caught instanceof Error ? caught.message : "Unable to load contracts."))
+      .finally(() => setLoadingContracts(false));
+  }, [section]);
 
   async function pick(file: File) {
     setError(null);
@@ -257,6 +277,20 @@ export default function ContractAnalyzerView() {
       setStage("ready");
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Unable to process the contract.");
+      setStage("idle");
+    }
+  }
+
+  async function openLoadedContract(loaded: LoadedContract) {
+    setError(null);
+    setStage("extracting");
+    try {
+      const response = await fetch(loaded.downloadUrl);
+      if (!response.ok) throw new Error("Unable to download the loaded contract.");
+      const blob = await response.blob();
+      await pick(new File([blob], loaded.filename, { type: loaded.mimeType }));
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Unable to open the loaded contract.");
       setStage("idle");
     }
   }
@@ -288,6 +322,60 @@ export default function ContractAnalyzerView() {
   }
 
   if (stage === "idle") {
+    if (section === "loaded") {
+      return (
+        <div style={{ height, overflowY: "auto", background: "#F3F4F6", padding: 24 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
+            <div style={{ width: 42, height: 42, borderRadius: 11, background: "#EFF6FF", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Icon icon="lucide:library" width={21} height={21} style={{ color: "#0176D3" }} />
+            </div>
+            <div>
+              <h2 style={{ margin: 0, color: "#111827", fontSize: 18, fontWeight: 700 }}>Loaded Contracts</h2>
+              <p style={{ margin: "3px 0 0", color: "#6B7280", fontSize: 12 }}>
+                Select a preloaded contract to analyze with Contract AI.
+              </p>
+            </div>
+            <span style={{ marginLeft: "auto", borderRadius: 999, background: "#EFF6FF", color: "#0176D3", padding: "5px 10px", fontSize: 11, fontWeight: 700 }}>
+              {loadedContracts.length} contracts
+            </span>
+          </div>
+
+          {loadingContracts ? (
+            <div style={{ height: 260, display: "flex", alignItems: "center", justifyContent: "center", gap: 9, color: "#6B7280", fontSize: 12 }}>
+              <Icon icon="lucide:loader-circle" width={18} height={18} className="animate-spin" style={{ color: "#0176D3" }} />
+              Loading contracts from Supabase...
+            </div>
+          ) : error ? (
+            <div style={{ border: "1px solid #FECACA", background: "#FEF2F2", borderRadius: 10, padding: 12, color: "#B91C1C", fontSize: 12 }}>{error}</div>
+          ) : (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 14 }}>
+              {loadedContracts.map(loaded => (
+                <button
+                  key={loaded.id}
+                  onClick={() => void openLoadedContract(loaded)}
+                  style={{ border: "1px solid #E5E7EB", borderRadius: 12, background: "#fff", padding: 16, textAlign: "left", cursor: "pointer", boxShadow: "0 1px 3px rgba(0,0,0,.05)", fontFamily: "inherit" }}
+                >
+                  <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+                    <div style={{ width: 36, height: 36, flexShrink: 0, borderRadius: 9, background: "#EFF6FF", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <Icon icon="lucide:file-text" width={17} height={17} style={{ color: "#0176D3" }} />
+                    </div>
+                    <div style={{ minWidth: 0 }}>
+                      <p style={{ margin: 0, color: "#111827", fontSize: 13, fontWeight: 700, lineHeight: 1.4 }}>{loaded.companyName}</p>
+                      <p style={{ margin: "3px 0 0", color: "#0176D3", fontSize: 11, fontWeight: 600 }}>{loaded.contractType}</p>
+                    </div>
+                  </div>
+                  <div style={{ marginTop: 14, paddingTop: 10, borderTop: "1px solid #F3F4F6", display: "flex", justifyContent: "space-between", color: "#9CA3AF", fontSize: 10 }}>
+                    <span>PDF · {(loaded.sizeBytes / 1024).toFixed(1)} KB</span>
+                    <span style={{ color: "#0176D3", fontWeight: 700 }}>Open analyzer →</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      );
+    }
+
     return (
       <div
         style={{

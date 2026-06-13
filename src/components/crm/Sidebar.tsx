@@ -2,12 +2,15 @@
 import { Icon } from "@iconify/react";
 
 export type CRMView = "dashboard" | "accounts" | "pipeline" | "aireview" | "cases" | "reports" | "contracts";
+export type ContractSection = "loaded" | "upload";
 
 interface SidebarProps {
   active: CRMView;
   onNav: (v: CRMView) => void;
   collapsed: boolean;
   onToggle: () => void;
+  contractSection: ContractSection;
+  onContractSection: (section: ContractSection) => void;
 }
 
 const NAV = [
@@ -21,7 +24,7 @@ const NAV = [
   { id: "contracts", label: "Contract Analyzer", icon: "lucide:file-search", badge: "AI" },
 ] as const;
 
-export default function Sidebar({ active, onNav, collapsed, onToggle }: SidebarProps) {
+export default function Sidebar({ active, onNav, collapsed, onToggle, contractSection, onContractSection }: SidebarProps) {
   return (
     <aside
       style={{ width: collapsed ? 56 : 220, background: "#032D60", transition: "width 200ms ease", flexShrink: 0 }}
@@ -53,28 +56,60 @@ export default function Sidebar({ active, onNav, collapsed, onToggle }: SidebarP
         {NAV.map((item) => {
           const isActive = active === item.id;
           return (
-            <button
-              key={item.id}
-              onClick={() => onNav(item.id as CRMView)}
-              className="w-full flex items-center gap-3 px-3 py-2.5 text-left transition-colors relative"
-              style={{
-                color: isActive ? "#fff" : "#7EB5E5",
-                background: isActive ? "rgba(1, 118, 211, 0.35)" : "transparent",
-                borderLeft: isActive ? "3px solid #0176D3" : "3px solid transparent",
-              }}
-              onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.06)"; }}
-              onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = "transparent"; }}
-            >
-              <Icon icon={item.icon} width={18} height={18} className="shrink-0" />
-              {!collapsed && (
-                <span className="text-sm font-medium truncate flex-1">{item.label}</span>
+            <div key={item.id}>
+              <button
+                onClick={() => onNav(item.id as CRMView)}
+                className="w-full flex items-center gap-3 px-3 py-2.5 text-left transition-colors relative"
+                style={{
+                  color: isActive ? "#fff" : "#7EB5E5",
+                  background: isActive ? "rgba(1, 118, 211, 0.35)" : "transparent",
+                  borderLeft: isActive ? "3px solid #0176D3" : "3px solid transparent",
+                }}
+                onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.06)"; }}
+                onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = "transparent"; }}
+              >
+                <Icon icon={item.icon} width={18} height={18} className="shrink-0" />
+                {!collapsed && <span className="text-sm font-medium truncate flex-1">{item.label}</span>}
+                {!collapsed && "badge" in item && item.badge && (
+                  <span className="text-xs font-bold px-1.5 py-0.5 rounded-full" style={{ background: "#0176D3", color: "#fff", fontSize: 9 }}>
+                    {item.badge}
+                  </span>
+                )}
+              </button>
+              {item.id === "contracts" && isActive && !collapsed && (
+                <div style={{ padding: "5px 8px 7px 34px", display: "grid", gap: 4 }}>
+                  {[
+                    { id: "loaded", label: "Loaded Contracts", icon: "lucide:library" },
+                    { id: "upload", label: "Upload Contract Analyzer", icon: "lucide:upload-cloud" },
+                  ].map(section => {
+                    const sectionActive = contractSection === section.id;
+                    return (
+                      <button
+                        key={section.id}
+                        onClick={() => onContractSection(section.id as ContractSection)}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 7,
+                          border: 0,
+                          borderRadius: 6,
+                          padding: "7px 8px",
+                          background: sectionActive ? "rgba(1,118,211,.42)" : "transparent",
+                          color: sectionActive ? "#fff" : "#7EB5E5",
+                          cursor: "pointer",
+                          fontSize: 11,
+                          fontWeight: 600,
+                          textAlign: "left",
+                        }}
+                      >
+                        <Icon icon={section.icon} width={13} height={13} />
+                        {section.label}
+                      </button>
+                    );
+                  })}
+                </div>
               )}
-              {!collapsed && "badge" in item && item.badge && (
-                <span className="text-xs font-bold px-1.5 py-0.5 rounded-full" style={{ background: "#0176D3", color: "#fff", fontSize: 9 }}>
-                  {item.badge}
-                </span>
-              )}
-            </button>
+            </div>
           );
         })}
       </nav>

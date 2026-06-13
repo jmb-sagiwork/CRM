@@ -35,6 +35,26 @@ npm run dev
 The API key is only read by `src/app/api/contracts/analyze/route.ts` and must
 never be exposed through a `NEXT_PUBLIC_` environment variable.
 
+## Supabase loaded contracts
+
+The Contract Analyzer has two nested sections:
+
+- **Loaded Contracts** lists preloaded contracts stored in a private Supabase
+  Storage bucket with metadata in PostgreSQL.
+- **Upload Contract Analyzer** preserves the browser-upload workflow.
+
+Required server-side variables:
+
+```env
+SUPABASE_URL=
+SUPABASE_SERVICE_ROLE_KEY=
+POSTGRES_URL=
+```
+
+The `/api/contracts` endpoint idempotently creates the `contracts` table and
+private storage bucket, seeds missing preload files, and returns short-lived
+signed download URLs.
+
 ## Vercel setup
 
 In the Vercel project, open **Settings > Environment Variables** and add:
@@ -49,8 +69,18 @@ redeploy.
 
 ## Demo fixture
 
-The upload screen links to `public/samples/demo-saas-agreement.docx`, a
-synthetic agreement containing representative SaaS terms and intentional gaps.
+Synthetic samples under `public/samples` cover varied SaaS terms and risk
+profiles:
+
+- `demo-saas-agreement.docx`
+- `customer-friendly-cloud-services-agreement.pdf`
+- `vendor-heavy-ai-platform-agreement.pdf`
+- `ambiguous-startup-saas-order-form.pdf`
+- `regulated-healthcare-saas-agreement.docx`
+- `startup-growth-saas-agreement.docx`
+
+The upload screen links to the original `demo-saas-agreement.docx`. The other
+files can be opened directly from `public/samples`.
 Regenerate it with:
 
 ```bash
