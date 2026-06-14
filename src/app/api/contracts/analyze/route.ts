@@ -1,4 +1,6 @@
 import OpenAI from "openai";
+import fs from "node:fs/promises";
+import path from "node:path";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -158,10 +160,10 @@ export async function POST(request: Request) {
   try {
     const input = RequestSchema.parse(await request.json());
     const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-    const origin = new URL(request.url).origin;
-    const policyResponse = await fetch(`${origin}/policies/contract-review-policy.txt`);
-    if (!policyResponse.ok) throw new Error("Unable to load contract review policy.");
-    const policyDocument = await policyResponse.text();
+    const policyDocument = await fs.readFile(
+      path.join(process.cwd(), "public", "policies", "contract-review-policy.txt"),
+      "utf8",
+    );
     const policyQuery = `${input.question || "initial contract review"}\n${input.contractText}`;
     const retrievedPolicies = retrievePolicies(policyDocument, policyQuery);
     const hardPolicyEvidence = findHardPolicyEvidence(input.contractText);

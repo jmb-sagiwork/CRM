@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import fs from "node:fs/promises";
+import path from "node:path";
 import pg from "pg";
 
 import type { LoadedContract } from "@/lib/contracts/loaded-contracts";
@@ -7,7 +9,7 @@ import { createSupabaseAdmin } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 
-async function ensurePreloadedContracts(origin: string) {
+async function ensurePreloadedContracts() {
   if (!process.env.POSTGRES_URL) throw new Error("POSTGRES_URL is not configured.");
 
   const connectionUrl = new URL(process.env.POSTGRES_URL);
@@ -53,9 +55,9 @@ async function ensurePreloadedContracts(origin: string) {
       );
       if (existing.rowCount) continue;
 
-      const response = await fetch(`${origin}/preloaded-contracts/${encodeURIComponent(contract.filename)}`);
-      if (!response.ok) throw new Error(`Unable to load preload file: ${contract.filename}`);
-      const bytes = new Uint8Array(await response.arrayBuffer());
+      const bytes = await fs.readFile(
+        path.join(process.cwd(), "public", "preloaded-contracts", contract.filename),
+      );
       const storagePath = `preloaded/${contract.filename}`;
       const { error: uploadError } = await supabase.storage
         .from("contracts")
@@ -75,9 +77,9 @@ async function ensurePreloadedContracts(origin: string) {
   }
 }
 
-export async function GET(request: Request) {
+export async function GET() {
   try {
-    await ensurePreloadedContracts(new URL(request.url).origin);
+    await ensurePreloadedContracts();
     const supabase = createSupabaseAdmin();
     const { data, error } = await supabase
       .from("contracts")

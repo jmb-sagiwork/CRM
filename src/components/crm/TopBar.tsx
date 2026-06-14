@@ -70,6 +70,18 @@ export default function TopBar({ view }: TopBarProps) {
         <Icon icon="lucide:settings" width={18} height={18} />
       </button>
 
+      <form action="/api/auth/logout" method="post">
+        <button
+          type="submit"
+          title="Sign out"
+          aria-label="Sign out"
+          className="flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
+          style={{ width: 34, height: 34, color: "#6B7280" }}
+        >
+          <Icon icon="lucide:log-out" width={17} height={17} />
+        </button>
+      </form>
+
       <div className="flex items-center gap-2 pl-2 border-l" style={{ borderColor: "#E5E7EB" }}>
         <div className="rounded-full flex items-center justify-center font-bold text-white text-xs" style={{ width: 30, height: 30, background: "#0176D3" }}>
           JD

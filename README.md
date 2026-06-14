@@ -55,6 +55,23 @@ The `/api/contracts` endpoint idempotently creates the `contracts` table and
 private storage bucket, seeds missing preload files, and returns short-lived
 signed download URLs.
 
+## Authentication
+
+The entire CRM and its APIs require a signed login session. Accounts are
+server-side only; there is no registration flow.
+
+Required server-side variables:
+
+```env
+AUTH_USERS=
+AUTH_SESSION_SECRET=
+```
+
+`AUTH_USERS` is a base64-encoded JSON object containing PBKDF2 password hashes.
+Never store plain-text passwords in the repository. Sessions last eight hours.
+Five failed attempts for a username and client trigger a 15-minute
+PostgreSQL-backed lockout.
+
 ## Policy RAG
 
 The analyzer retrieves relevant policy text from:
